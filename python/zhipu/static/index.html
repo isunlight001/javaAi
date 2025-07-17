@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>智普AI + MySQL 集成 Demo</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+        }
+        .result pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .tabs {
+            display: flex;
+            border-bottom: 2px solid #ddd;
+            margin-bottom: 20px;
+        }
+        .tab {
+            padding: 15px 20px;
+            cursor: pointer;
+            border-bottom: 3px solid transparent;
+        }
+        .tab.active {
+            border-bottom-color: #667eea;
+            color: #667eea;
+            font-weight: bold;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 智普AI + MySQL 集成 Demo</h1>
+        </div>
+
+        <div class="content">
+            <div class="tabs">
+                <div class="tab active" onclick="showTab('demo')">系统演示</div>
+                <div class="tab" onclick="showTab('users')">用户管理</div>
+                <div class="tab" onclick="showTab('ai')">AI服务</div>
+                <div class="tab" onclick="showTab('tools')">工具功能</div>
+                <div class="tab" onclick="showTab('stock')">股票分析</div>
+            </div>
+
+            <!-- 系统演示 -->
+            <div id="demo" class="tab-content active">
+                <div class="section">
+                    <h2>🚀 系统功能</h2>
+                    <button class="btn" onclick="getSystemInfo()">获取系统信息</button>
+                    <button class="btn" onclick="testDatabase()">测试数据库</button>
+                    <button class="btn" onclick="analyzeAllUsers()">分析用户数据</button>
+                    <div id="demo-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>⚡ 快速测试</h2>
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input type="text" id="quick-username" value="测试用户">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱:</label>
+                        <input type="email" id="quick-email" value="test@example.com">
+                    </div>
+                    <div class="form-group">
+                        <label>描述:</label>
+                        <textarea id="quick-description" rows="3">这是一个测试用户</textarea>
+                    </div>
+                    <button class="btn" onclick="quickTest()">创建用户并分析</button>
+                    <div id="quick-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- 用户管理 -->
+            <div id="users" class="tab-content">
+                <div class="section">
+                    <h2>👥 用户管理</h2>
+                    <button class="btn" onclick="getAllUsers()">获取所有用户</button>
+                    <button class="btn" onclick="initTestData()">初始化测试数据</button>
+                    <div id="users-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>➕ 创建用户</h2>
+                    <div class="form-group">
+                        <label>用户名:</label>
+                        <input type="text" id="new-username">
+                    </div>
+                    <div class="form-group">
+                        <label>邮箱:</label>
+                        <input type="email" id="new-email">
+                    </div>
+                    <div class="form-group">
+                        <label>描述:</label>
+                        <textarea id="new-description" rows="3"></textarea>
+                    </div>
+                    <button class="btn" onclick="createUser()">创建用户</button>
+                    <div id="create-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- AI服务 -->
+            <div id="ai" class="tab-content">
+                <div class="section">
+                    <h2>🤖 智能查询（推荐）</h2>
+                    <p style="color: #666; margin-bottom: 15px;">智能查询会自动从数据库获取相关信息，提供更准确的回答</p>
+                    <div class="form-group">
+                        <label>查询内容:</label>
+                        <textarea id="smart-query" rows="4" placeholder="例如：查询所有用户、Java开发工程师有哪些、张三的信息等">查询所有用户信息</textarea>
+                    </div>
+                    <button class="btn" onclick="smartQuery()">智能查询</button>
+                    <div id="smart-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>💬 普通AI聊天</h2>
+                    <div class="form-group">
+                        <label>消息:</label>
+                        <textarea id="chat-message" rows="4">你好，请介绍一下自己</textarea>
+                    </div>
+                    <button class="btn" onclick="chatWithAI()">发送消息</button>
+                    <div id="chat-result" class="result" style="display: none;"></div>
+                </div>
+
+                <div class="section">
+                    <h2>📊 AI数据分析</h2>
+                    <div class="form-group">
+                        <label>数据:</label>
+                        <textarea id="analyze-data" rows="6">用户数据示例：
+张三 - Java开发工程师
+李四 - 前端开发工程师</textarea>
+                    </div>
+                    <button class="btn" onclick="analyzeUserData()">分析数据</button>
+                    <div id="analyze-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+
+            <!-- 工具功能 -->
+            <div id="tools" class="tab-content">
+                <div class="section">
+                    <h2>🔄 模式替换重命名</h2>
+                    <p style="color: #666; margin-bottom: 15px;">将所有文件/文件夹名中包含指定字符串的部分替换为新字符串，递归处理所有子目录</p>
+                    <div class="form-group">
+                        <label>目录绝对路径:</label>
+                        <input type="text" id="replace-dir-path" style="width: 80%;" placeholder="如 D:/test" />
+                    </div>
+                    <div class="form-group">
+                        <label>匹配字符串:</label>
+                        <input type="text" id="replace-pattern" style="width: 50%;" placeholder="如 _" />
+                    </div>
+                    <div class="form-group">
+                        <label>替换为:</label>
+                        <input type="text" id="replace-replacement" style="width: 50%;" placeholder="如 -" />
+                    </div>
+                    <button class="btn" onclick="renameByReplacement()">批量替换重命名</button>
+                    <div id="replace-result" class="result" style="display: none;"></div>
+                </div>
+                
+            </div>
+            <!-- 股票分析 -->
+            <div id="stock" class="tab-content">
+                <div class="section">
+                    <h2>📈 股票选股</h2>
+                    <button class="btn" onclick="getStockPicks()">一键选股</button>
+                    <div id="stock-pick-result" class="result" style="display: none;"></div>
+                </div>
+                <div class="section">
+                    <h2>🛡️ 风控检测</h2>
+                    <div class="form-group">
+                        <label>股票代码:</label>
+                        <input type="text" id="risk-code" placeholder="如 000001.SZ">
+                    </div>
+                    <div class="form-group">
+                        <label>买入价:</label>
+                        <input type="number" id="risk-buy-price" placeholder="买入价">
+                    </div>
+                    <div class="form-group">
+                        <label>买入日最低价:</label>
+                        <input type="number" id="risk-buy-low" placeholder="买入日最低价">
+                    </div>
+                    <button class="btn" onclick="checkStockRisk()">风控检测</button>
+                    <div id="stock-risk-result" class="result" style="display: none;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay" style="display:none;position:fixed;z-index:9999;top:0;left:0;width:100vw;height:100vh;background:rgba(128,128,128,0.35);backdrop-filter: blur(1px);"></div>
+
+    <script>
+        const API_BASE = 'http://localhost:8080';
+
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+            // 禁用所有按钮
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            // 恢复所有按钮
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+
+        async function callAPI(url, method = 'GET', body = null) {
+            showOverlay();
+            try {
+                const options = {
+                    method: method,
+                    headers: { 'Content-Type': 'application/json' }
+                };
+                if (body && method !== 'GET') {
+                    options.body = JSON.stringify(body);
+                }
+                const response = await fetch(API_BASE + url, options);
+                const data = await response.json();
+                return { success: response.ok, data: data, status: response.status };
+            } catch (error) {
+                return { success: false, error: error.message, status: 0 };
+            } finally {
+                hideOverlay();
+            }
+        }
+
+        function showResult(elementId, result, title) {
+            const element = document.getElementById(elementId);
+            element.style.display = 'block';
+            if (result.success) {
+                element.innerHTML = `<h3>✅ ${title}</h3><pre>${JSON.stringify(result.data, null, 2)}</pre>`;
+            } else {
+                element.innerHTML = `<h3>❌ ${title}</h3><pre>${JSON.stringify(result.error || result.data, null, 2)}</pre>`;
+            }
+        }
+
+        // 系统演示功能
+        async function getSystemInfo() {
+            const result = await callAPI('/api/demo/info');
+            showResult('demo-result', result, '系统信息');
+        }
+
+        async function testDatabase() {
+            const result = await callAPI('/api/demo/db-test');
+            showResult('demo-result', result, '数据库测试');
+        }
+
+        async function analyzeAllUsers() {
+            const result = await callAPI('/api/demo/analyze-all-users');
+            showResult('demo-result', result, '用户数据分析');
+        }
+
+        async function quickTest() {
+            const username = document.getElementById('quick-username').value;
+            const email = document.getElementById('quick-email').value;
+            const description = document.getElementById('quick-description').value;
+            const body = { username, email, description };
+            const result = await callAPI('/api/demo/quick-test', 'POST', body);
+            showResult('quick-result', result, '快速测试');
+        }
+
+        // 用户管理功能
+        async function getAllUsers() {
+            const result = await callAPI('/api/users');
+            showResult('users-result', result, '所有用户');
+        }
+
+        async function initTestData() {
+            const result = await callAPI('/api/users/init-test-data', 'POST');
+            showResult('users-result', result, '初始化测试数据');
+        }
+
+        async function createUser() {
+            const username = document.getElementById('new-username').value;
+            const email = document.getElementById('new-email').value;
+            const description = document.getElementById('new-description').value;
+            const body = { username, email, description };
+            const result = await callAPI('/api/users', 'POST', body);
+            showResult('create-result', result, '创建用户');
+        }
+
+        // AI服务功能
+        async function smartQuery() {
+            const message = document.getElementById('smart-query').value;
+            const body = { message };
+            const result = await callAPI('/api/ai/smart-query', 'POST', body);
+            showResult('smart-result', result, '智能查询');
+        }
+
+        async function chatWithAI() {
+            const message = document.getElementById('chat-message').value;
+            const body = { message };
+            const result = await callAPI('/api/ai/chat', 'POST', body);
+            showResult('chat-result', result, 'AI聊天');
+        }
+
+        async function analyzeUserData() {
+            const data = document.getElementById('analyze-data').value;
+            const result = await callAPI('/api/ai/analyze-users', 'POST', data);
+            showResult('analyze-result', result, 'AI数据分析');
+        }
+
+        // 页面加载完成后自动获取系统信息
+        window.onload = function() {
+            getSystemInfo();
+        };
+
+       
+
+        // 工具功能：模式替换重命名
+        async function renameByReplacement() {
+            const dirPath = document.getElementById('replace-dir-path').value.trim();
+            const pattern = document.getElementById('replace-pattern').value.trim();
+            const replacement = document.getElementById('replace-replacement').value.trim();
+            if (!dirPath || !pattern) {
+                alert('请输入目录路径和匹配字符串');
+                return;
+            }
+            const body = { dirPath, pattern, replacement };
+            const result = await callAPI('/api/tools/rename-by-replacement', 'POST', body);
+            if (result.success && result.data.success) {
+                let html = `<h3>替换重命名结果（共${result.data.total}项）：</h3><ul>`;
+                result.data.list.forEach(item => {
+                    const status = item.success === 'true' ? '✅ 成功' : '❌ 失败';
+                    html += `<li><strong>${item.type}</strong>: ${item.old} → ${item.new} [${status}${item.error ? '，' + item.error : ''}]</li>`;
+                });
+                html += '</ul>';
+                showResult('replace-result', { success: true, data: html }, '批量替换重命名');
+            } else {
+                showResult('replace-result', result, '批量替换重命名');
+            }
+        }
+
+        // 股票选股
+        function getStockPicks() {
+            fetch('/api/stock/select')
+                .then(res => res.json())
+                .then(data => {
+                    let html = '';
+                    if (data && data.length > 0) {
+                        html += '<ul>';
+                        data.forEach((item, idx) => {
+                            html += `<li>${idx + 1}. ${item.stock ? item.stock.name + '（' + item.stock.code + '）' : ''} - ${item.reason}</li>`;
+                        });
+                        html += '</ul>';
+                    } else {
+                        html = '无符合条件的股票';
+                    }
+                    document.getElementById('stock-pick-result').innerHTML = html;
+                    document.getElementById('stock-pick-result').style.display = 'block';
+                })
+                .catch(() => {
+                    document.getElementById('stock-pick-result').innerHTML = '选股失败';
+                    document.getElementById('stock-pick-result').style.display = 'block';
+                });
+        }
+
+        // 股票风控
+        function checkStockRisk() {
+            const code = document.getElementById('risk-code').value.trim();
+            const buyPrice = document.getElementById('risk-buy-price').value;
+            const buyLow = document.getElementById('risk-buy-low').value;
+            if (!code || !buyPrice || !buyLow) {
+                alert('请填写完整信息');
+                return;
+            }
+            fetch('/api/stock/risk/check', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code, buyPrice: parseFloat(buyPrice), buyDayLow: parseFloat(buyLow) })
+            })
+            .then(res => res.json())
+            .then(data => {
+                let html = '';
+                if (data.success) {
+                    html = `<b>操作建议：</b> ${data.action}<br><b>原因：</b> ${data.reason}<br><b>当前价：</b> ${data.currentPrice}<br><b>收益率：</b> ${data.profitPercent ? data.profitPercent.toFixed(2) : 0}%`;
+                } else {
+                    html = '风控检测失败：' + (data.error || '未知错误');
+                }
+                document.getElementById('stock-risk-result').innerHTML = html;
+                document.getElementById('stock-risk-result').style.display = 'block';
+            })
+            .catch(() => {
+                document.getElementById('stock-risk-result').innerHTML = '风控检测失败';
+                document.getElementById('stock-risk-result').style.display = 'block';
+            });
+        }
+    </script>
+</body>
+</html> 

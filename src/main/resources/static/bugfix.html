@@ -1,0 +1,843 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bugfix 智能日志分析</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.5em;
+        }
+        .content {
+            padding: 30px;
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #f9f9f9;
+        }
+        .section h2 {
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .form-group input, .form-group textarea, .form-group select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        .form-group-flex {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 0;
+        }
+        .form-group-flex .form-group {
+            flex: 1;
+            margin-bottom: 0;
+        }
+        .form-group-flex .form-group:first-child {
+            flex: 0 0 220px;
+        }
+        .form-group-flex label {
+            margin-bottom: 6px;
+            font-size: 15px;
+        }
+        /* 统一输入框和下拉框样式 */
+        .form-group-flex select,
+        .form-group-flex input[type="text"] {
+            height: 44px;
+            border-radius: 8px;
+            font-size: 16px;
+            border: 1px solid #ccc;
+            padding: 0 14px;
+            background: #fff;
+            box-sizing: border-box;
+            transition: border 0.2s;
+        }
+        .form-group-flex select:focus,
+        .form-group-flex input[type="text"]:focus {
+            border: 1.5px solid #667eea;
+            outline: none;
+        }
+        .form-group-flex select {
+            min-width: 160px;
+            max-width: 100%;
+        }
+        .form-group-flex input[type="text"] {
+            width: 100%;
+        }
+        /* 按钮组右对齐 */
+        .form-group.btn-group {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 12px;
+            margin-top: 10px;
+            margin-bottom: 0;
+        }
+        .btn-secondary, .send-btn {
+            height: 44px;
+            min-width: 120px;
+            font-size: 16px;
+            border-radius: 8px;
+        }
+        .btn-secondary {
+            margin-right: 0;
+        }
+        @media (max-width: 700px) {
+            .form-group-flex {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+            .form-group-flex .form-group:first-child {
+                flex: 1;
+            }
+            .form-group.btn-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+        }
+        .btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin-right: 10px;
+            margin-bottom: 10px;
+            transition: background 0.3s;
+        }
+        .btn:hover {
+            background: #5a6fd8;
+        }
+        .btn-secondary {
+            background: #6c757d;
+        }
+        .btn-secondary:hover {
+            background: #5a6268;
+        }
+        .btn-secondary.active {
+            background: #28a745;
+        }
+        .btn-small {
+            background: #dc3545;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            cursor: pointer;
+        }
+        .btn-small:hover {
+            background: #c82333;
+        }
+        .send-btn {
+            background: #667eea;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background 0.3s;
+        }
+        .send-btn:hover {
+            background: #5a6fd8;
+        }
+        .result {
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 5px;
+            border-left: 4px solid #667eea;
+            display: none;
+        }
+        .result.success {
+            background: #d4edda;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .result.error {
+            background: #f8d7da;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .result pre {
+            background: #2d3748;
+            color: #e2e8f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        .token-info {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f0f7fa;
+            border-radius: 8px;
+            border-left: 4px solid #667eea;
+        }
+        .token-info h4 {
+            color: #333;
+            font-size: 18px;
+            margin-bottom: 10px;
+        }
+        .token-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-around;
+            gap: 15px;
+        }
+        .token-item {
+            display: flex;
+            align-items: center;
+        }
+        .token-label {
+            font-weight: bold;
+            color: #555;
+            margin-right: 5px;
+        }
+        .token-value {
+            font-size: 16px;
+            font-weight: 600;
+            color: #333;
+        }
+        .token-value.total {
+            color: #dc3545;
+        }
+        .session-info {
+            background-color: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+        .session-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .session-label {
+            font-weight: bold;
+            color: #555;
+        }
+        .session-id {
+            font-family: 'Courier New', monospace;
+            background-color: #e9ecef;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+            color: #333;
+        }
+        .session-stats {
+            display: flex;
+            gap: 20px;
+        }
+        .stat-item {
+            font-size: 14px;
+            color: #666;
+        }
+        .status-section {
+            margin-bottom: 20px;
+        }
+        .status-badge {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-weight: bold;
+            font-size: 14px;
+        }
+        .status-badge.success {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        .status-badge.partial {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        .status-badge.error {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        .section-content {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .section-content h4 {
+            color: #555;
+            font-size: 16px;
+            margin-bottom: 10px;
+        }
+        .log-summary, .defect-type, .root-cause, .solutions {
+            padding-left: 15px;
+        }
+        .solution-item {
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px dashed #eee;
+        }
+        .solution-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+        }
+        .solution-type {
+            font-weight: bold;
+            font-size: 14px;
+            padding: 3px 8px;
+            border-radius: 4px;
+        }
+        .solution-type.hotfix {
+            background-color: #fffbe6;
+            color: #e6a700;
+        }
+        .solution-type.architecture {
+            background-color: #e0f7fa;
+            color: #00796b;
+        }
+        .confidence {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        .confidence.high {
+            color: #28a745;
+        }
+        .confidence.medium {
+            color: #ffc107;
+        }
+        .confidence.low {
+            color: #dc3545;
+        }
+        .code-snippet {
+            background-color: #f5f5f5;
+            padding: 10px;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: 'Consolas', 'Monaco', 'Andale Mono', 'Ubuntu Mono', 'monospace';
+            white-space: pre-wrap;
+            word-wrap: break-word;
+            overflow-x: auto;
+        }
+        .model-status {
+            font-size: 12px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .model-status.available {
+            color: #28a745;
+        }
+        .model-status.unavailable {
+            color: #dc3545;
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(128,128,128,0.35);
+            backdrop-filter: blur(1px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🐛 Bugfix 智能日志分析</h1>
+        </div>
+
+        <div class="content">
+            <div class="section">
+                <h2>🔍 日志分析</h2>
+                <div class="form-group-flex">
+                    <div class="form-group">
+                        <label>AI模型:</label>
+                        <select id="modelSelect" onchange="onModelDropdownChange()">
+                            <option value="zhipu" selected>智谱AI GLM-4</option>
+                            <option value="deepseek">DeepSeek Chat</option>
+                            <option value="tongyi">通义千问 Turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>流水号或日志内容:</label>
+                        <input type="text" id="serialNo" placeholder="请输入流水号或日志内容..." />
+                    </div>
+                    <div class="form-group btn-group">
+                        <button class="btn-secondary" onclick="toggleMemoryMode()" id="memoryToggle">
+                            启用记忆模式
+                        </button>
+                        <button class="send-btn" onclick="queryLog()">开始分析</button>
+                    </div>
+                </div>
+                <div id="modelStatus" class="model-status available" style="margin-top:10px;">
+                    当前模型: 智谱AI GLM-4
+                </div>
+            </div>
+
+            <div id="sessionInfo" class="session-info" style="display: none;">
+                <div class="session-header">
+                    <span class="session-label">会话ID:</span>
+                    <span id="currentSessionId" class="session-id"></span>
+                    <button class="btn-small" onclick="clearCurrentSession()">清除会话</button>
+                </div>
+                <div class="session-stats">
+                    <span class="stat-item">对话轮次: <span id="conversationRounds">0</span></span>
+                    <span class="stat-item">消息数: <span id="messageCount">0</span></span>
+                </div>
+            </div>
+
+            <div id="result" class="result">
+                <h3 id="resultTitle"></h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+
+    <div id="overlay"></div>
+
+    <script>
+        let currentSessionId = null;
+        let memoryMode = false;
+        let conversationRounds = 0;
+        let messageCount = 0;
+        let currentModel = 'zhipu';
+
+        // 页面加载时获取支持的模型
+        window.onload = function() {
+            loadSupportedModels();
+        };
+
+        function loadSupportedModels() {
+            fetch('/bugfix/models')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success && data.models) {
+                        updateModelSelect(data.models);
+                    }
+                })
+                .catch(error => {
+                    console.error('加载模型列表失败:', error);
+                });
+        }
+
+        function updateModelSelect(models) {
+            const select = document.getElementById('modelSelect');
+            select.innerHTML = '';
+            
+            // 添加默认选项
+            const defaultOptions = [
+                { value: 'zhipu', text: '智谱AI GLM-4' },
+                { value: 'deepseek', text: 'DeepSeek Chat' },
+                { value: 'tongyi', text: '通义千问 Turbo' }
+            ];
+            
+            defaultOptions.forEach(option => {
+                const optionElement = document.createElement('option');
+                optionElement.value = option.value;
+                optionElement.textContent = option.text;
+                if (option.value === currentModel) {
+                    optionElement.selected = true;
+                }
+                select.appendChild(optionElement);
+            });
+        }
+
+        function changeModel() {
+            const select = document.getElementById('modelSelect');
+            const newModel = select.value;
+            
+            if (newModel !== currentModel) {
+                currentModel = newModel;
+                updateCurrentModelDisplay();
+                
+                // 显示模型切换提示
+                showResult(`已切换到${getModelDisplayName(newModel)}`, 'success');
+                
+                // 如果启用了记忆模式，清除当前会话
+                if (memoryMode && currentSessionId) {
+                    clearCurrentSession();
+                }
+            }
+        }
+
+        function updateCurrentModelDisplay() {
+            const modelStatus = document.getElementById('modelStatus');
+            modelStatus.textContent = `当前模型: ${getModelDisplayName(currentModel)}`;
+        }
+
+        function getModelDisplayName(modelType) {
+            switch (modelType) {
+                case 'zhipu':
+                    return '智谱AI GLM-4';
+                case 'deepseek':
+                    return 'DeepSeek Chat';
+                case 'tongyi':
+                    return '通义千问 Turbo';
+                default:
+                    return '智谱AI GLM-4';
+            }
+        }
+
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+            // 禁用所有按钮
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            // 恢复所有按钮
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+
+        function queryLog() {
+            const serialNo = document.getElementById('serialNo').value.trim();
+            const result = document.getElementById('result');
+            
+            if (!serialNo) {
+                showResult('请输入有效的流水号', 'error');
+                return;
+            }
+            
+            // 进入等待状态
+            showOverlay();
+            result.style.display = 'none';
+            
+            // 根据记忆模式选择不同的API
+            const apiUrl = memoryMode ? '/bugfix/analyze-with-memory' : '/bugfix/analyze';
+            const requestBody = memoryMode ? 
+                { serialNo, sessionId: currentSessionId, modelType: currentModel } : 
+                { serialNo, modelType: currentModel };
+            
+            fetch(apiUrl, {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(requestBody)
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.suggestion) {
+                    // 更新会话信息
+                    if (memoryMode && data.sessionId) {
+                        currentSessionId = data.sessionId;
+                        messageCount = data.messageCount || 0;
+                        conversationRounds = Math.floor(messageCount / 2);
+                        updateSessionDisplay();
+                    }
+                    
+                    showResult(data.suggestion, 'success', data.tokenInfo);
+                } else if (data.error) {
+                    showResult(data.error, 'error');
+                } else {
+                    showResult('未知错误', 'error');
+                }
+            })
+            .catch(error => {
+                showResult('网络错误：' + error.message, 'error');
+            })
+            .finally(() => {
+                // 退出等待状态
+                hideOverlay();
+            });
+        }
+        
+        function showResult(content, type, tokenInfo = null) {
+            const result = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            
+            result.className = 'result ' + type;
+            result.style.display = 'block';
+            
+            if (type === 'success') {
+                resultTitle.innerHTML = '✅ 分析完成';
+                // 尝试解析JSON格式的AI响应
+                try {
+                    const aiResponse = JSON.parse(content);
+                    resultContent.innerHTML = formatAIResponse(aiResponse, tokenInfo);
+                } catch (e) {
+                    // 如果不是JSON格式，直接显示原始内容
+                    resultContent.innerHTML = formatPlainText(content, tokenInfo);
+                }
+            } else if (type === 'error') {
+                resultTitle.innerHTML = '❌ 分析失败';
+                resultContent.textContent = content;
+            } else {
+                resultTitle.innerHTML = 'ℹ️ 分析结果';
+                resultContent.textContent = content;
+            }
+        }
+        
+        function formatAIResponse(response, tokenInfo) {
+            let html = '';
+            
+            // Token消耗信息
+            if (tokenInfo) {
+                html += `<div class="token-info">
+                    <h4>📊 Token消耗统计</h4>
+                    <div class="token-stats">
+                        <div class="token-item">
+                            <span class="token-label">输入Token:</span>
+                            <span class="token-value">${tokenInfo.inputTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">输出Token:</span>
+                            <span class="token-value">${tokenInfo.outputTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">总Token:</span>
+                            <span class="token-value total">${tokenInfo.totalTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">响应时间:</span>
+                            <span class="token-value">${tokenInfo.responseTime}ms</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">响应速度:</span>
+                            <span class="token-value">${tokenInfo.speed} 字符/秒</span>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // 状态信息
+            const statusIcon = response.status === 'success' ? '✅' : 
+                              response.status === 'partial' ? '⚠️' : '❌';
+            const statusText = response.status === 'success' ? '分析成功' : 
+                              response.status === 'partial' ? '部分成功' : '分析失败';
+            
+            html += `<div class="status-section">
+                <h4>${statusIcon} 分析状态</h4>
+                <p class="status-badge ${response.status}">${statusText}</p>
+            </div>`;
+            
+            // 日志摘要
+            if (response.log_summary) {
+                html += `<div class="section-content">
+                    <h4>📋 日志摘要</h4>
+                    <div class="log-summary">${response.log_summary}</div>
+                </div>`;
+            }
+            
+            // 缺陷类型
+            if (response.defect_type) {
+                html += `<div class="section-content">
+                    <h4>🐛 缺陷类型</h4>
+                    <div class="defect-type">${response.defect_type}</div>
+                </div>`;
+            }
+            
+            // 根因分析
+            if (response.root_cause) {
+                html += `<div class="section-content">
+                    <h4>🔍 根因分析</h4>
+                    <div class="root-cause">
+                        <div class="cause-item">
+                            <strong>文件路径：</strong>${response.root_cause.code_file || '未知'}
+                        </div>
+                        <div class="cause-item">
+                            <strong>行号：</strong>${response.root_cause.line_number || '未知'}
+                        </div>
+                        <div class="cause-item">
+                            <strong>代码片段：</strong>
+                            <pre class="code-snippet">${response.root_cause.context || '无'}</pre>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // 解决方案
+            if (response.solutions && response.solutions.length > 0) {
+                html += `<div class="section-content">
+                    <h4>💡 解决方案</h4>
+                    <div class="solutions">`;
+                
+                response.solutions.forEach((solution, index) => {
+                    const confidenceColor = solution.confidence >= 0.8 ? 'high' : 
+                                          solution.confidence >= 0.6 ? 'medium' : 'low';
+                    html += `<div class="solution-item">
+                        <div class="solution-header">
+                            <span class="solution-type ${solution.type}">${solution.type === 'hotfix' ? '🔥 热修复' : '🏗️ 架构优化'}</span>
+                            <span class="confidence ${confidenceColor}">置信度: ${(solution.confidence * 100).toFixed(0)}%</span>
+                        </div>
+                        <div class="solution-description">${solution.description}</div>
+                    </div>`;
+                });
+                
+                html += `</div></div>`;
+            }
+            
+            return html;
+        }
+        
+        function formatPlainText(content, tokenInfo) {
+            let html = '';
+            
+            // Token消耗信息
+            if (tokenInfo) {
+                html += `<div class="token-info">
+                    <h4>📊 Token消耗统计</h4>
+                    <div class="token-stats">
+                        <div class="token-item">
+                            <span class="token-label">输入Token:</span>
+                            <span class="token-value">${tokenInfo.inputTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">输出Token:</span>
+                            <span class="token-value">${tokenInfo.outputTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">总Token:</span>
+                            <span class="token-value total">${tokenInfo.totalTokens}</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">响应时间:</span>
+                            <span class="token-value">${tokenInfo.responseTime}ms</span>
+                        </div>
+                        <div class="token-item">
+                            <span class="token-label">响应速度:</span>
+                            <span class="token-value">${tokenInfo.speed} 字符/秒</span>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // 原始内容
+            html += `<div class="section-content">
+                <h4>📄 分析结果</h4>
+                <div class="plain-text">${content.replace(/\n/g, '<br>')}</div>
+            </div>`;
+            
+            return html;
+        }
+        
+        function toggleMemoryMode() {
+            memoryMode = !memoryMode;
+            const toggleBtn = document.getElementById('memoryToggle');
+            const sessionInfo = document.getElementById('sessionInfo');
+            
+            if (memoryMode) {
+                toggleBtn.innerHTML = '记忆模式已启用';
+                toggleBtn.classList.add('active');
+                sessionInfo.style.display = 'block';
+                
+                // 如果没有会话ID，生成新的
+                if (!currentSessionId) {
+                    currentSessionId = generateSessionId();
+                    updateSessionDisplay();
+                }
+            } else {
+                toggleBtn.innerHTML = '启用记忆模式';
+                toggleBtn.classList.remove('active');
+                sessionInfo.style.display = 'none';
+            }
+        }
+        
+        function generateSessionId() {
+            return 'session_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+        }
+        
+        function updateSessionDisplay() {
+            document.getElementById('currentSessionId').textContent = currentSessionId;
+            document.getElementById('conversationRounds').textContent = conversationRounds;
+            document.getElementById('messageCount').textContent = messageCount;
+        }
+        
+        function clearCurrentSession() {
+            if (!currentSessionId) return;
+            
+            fetch(`/bugfix/session/${currentSessionId}`, {
+                method: 'DELETE'
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.success) {
+                    // 重置会话信息
+                    currentSessionId = null;
+                    conversationRounds = 0;
+                    messageCount = 0;
+                    updateSessionDisplay();
+                    document.getElementById('sessionInfo').style.display = 'none';
+                    
+                    // 显示清除成功消息
+                    showResult('会话已清除', 'success');
+                } else {
+                    showResult('清除会话失败: ' + (data.error || data.message), 'error');
+                }
+            })
+            .catch(error => {
+                showResult('清除会话失败: ' + error.message, 'error');
+            });
+        }
+        
+        function onModelDropdownChange() {
+            loadSupportedModels();
+            changeModel();
+        }
+
+        // 回车键触发分析
+        document.getElementById('serialNo').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                queryLog();
+            }
+        });
+    </script>
+</body>
+</html> 

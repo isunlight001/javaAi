@@ -1,0 +1,87 @@
+server:
+  port: 8080
+
+spring:
+  application:
+    name: zhipu-demo
+  main:
+    allow-bean-definition-overriding: true
+  
+  datasource:
+    url: jdbc:mysql://localhost:3306/sc6kd_indv_stl_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
+    username: root
+    password: root123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.MySQL8Dialect
+        format_sql: true
+  
+  mail:
+    host: smtp.qq.com
+    port: 587
+    username: "903635811@qq.com"  # 替换为你的QQ邮箱
+    password: "okfrcokdlwlbbbac"  # 替换为QQ邮箱的16位授权码（不是登录密码）
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+            required: true
+
+# 智普AI 配置
+zhipu:
+  ai:
+    api-key: 70588140e55b478d94e85bff6bde26b1.6TxNHaPcyXR4dg0U
+    base-url: https://open.bigmodel.cn/api/paas/v4
+    model: glm-4
+    model-type: zhipu  # 可选: zhipu, deepseek, tongyi
+    use-mock: false  # 设置为true使用模拟服务，false使用真实API
+
+# DeepSeek AI 配置
+deepseek:
+  api-key: ""  # 请填入你的DeepSeek API Key
+  base-url: https://api.deepseek.com
+  model: deepseek-chat
+
+# 通义千问 AI 配置
+tongyi:
+  api-key: ""  # 请填入你的通义千问 API Key
+  base-url: https://dashscope.aliyuncs.com
+  model: qwen-turbo
+
+# 日志配置已移至 logback-spring.xml
+
+# 股票邮件配置
+stock:
+  mail:
+    to: "57954282@qq.com"  # 替换为你的QQ邮箱 
+
+# tushare配置
+# 请将your_tushare_token替换为你自己的token
+
+tushare:
+  token: "1e69de06c2e26b5348f94c299a25e154b6a809b7eb88192503531e48" 
+  
+
+# application.yml
+# logging:
+#   level:
+#     org.springframework.beans.factory.support.DefaultListableBeanFactory: INFO
+#     org.springframework.context.annotation.ConfigurationClassPostProcessor: INFO
+
+# application.yml
+management:
+  endpoints:
+    web:
+      exposure:
+        include: startup,health  # 暴露startup和health端点
+  endpoint:
+    startup:
+      enabled: true  # 显式启用startup端点（默认已启用，可省略）

@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Stock AI 智能分析</title>
+    <style>
+        body {
+            font-family: 'Microsoft YaHei', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background: linear-gradient(135deg, #e0e7ff 0%, #f5f7fa 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 40px auto 0 auto;
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 4px 24px 0 rgba(102,126,234,0.08);
+            overflow: hidden;
+            padding: 0 0 32px 0;
+            transition: box-shadow 0.3s;
+        }
+        .container:hover {
+            box-shadow: 0 8px 32px 0 rgba(102,126,234,0.13);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 36px 0 24px 0;
+            text-align: center;
+            border-radius: 0 0 32px 32px;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 2.2em;
+            letter-spacing: 1px;
+            font-weight: 700;
+        }
+        .content {
+            padding: 32px 28px 0 28px;
+        }
+        .section {
+            margin-bottom: 32px;
+            padding: 24px 20px 20px 20px;
+            border-radius: 18px;
+            background: #f7f8fa;
+            box-shadow: 0 2px 8px 0 rgba(102,126,234,0.04);
+            border: none;
+            transition: box-shadow 0.3s;
+        }
+        .section h2 {
+            color: #5a6fd8;
+            margin-bottom: 18px;
+            font-size: 1.25em;
+            font-weight: 600;
+            border: none;
+            padding-bottom: 0;
+            letter-spacing: 0.5px;
+        }
+        .form-group-flex {
+            display: flex;
+            align-items: flex-end;
+            gap: 18px;
+            margin-bottom: 0;
+            flex-wrap: wrap;
+        }
+        .form-group-flex .form-group {
+            flex: 1;
+            margin-bottom: 0;
+            min-width: 120px;
+        }
+        .form-group-flex .form-group:first-child {
+            flex: 0 0 170px;
+        }
+        .form-group-flex label {
+            margin-bottom: 7px;
+            font-size: 15px;
+            color: #555;
+            font-weight: 500;
+        }
+        .form-group-flex select,
+        .form-group-flex input[type="text"] {
+            height: 44px;
+            border-radius: 14px;
+            font-size: 16px;
+            border: 1.5px solid #e3e8f7;
+            padding: 0 16px;
+            background: #fafdff;
+            box-sizing: border-box;
+            transition: border 0.2s, box-shadow 0.2s;
+            outline: none;
+            box-shadow: 0 1px 2px 0 rgba(102,126,234,0.03);
+        }
+        .form-group-flex select:focus,
+        .form-group-flex input[type="text"]:focus {
+            border: 1.5px solid #667eea;
+            box-shadow: 0 2px 8px 0 rgba(102,126,234,0.10);
+        }
+        .form-group-flex select {
+            min-width: 140px;
+            max-width: 100%;
+        }
+        .form-group-flex input[type="text"] {
+            width: 100%;
+        }
+        .form-group.btn-group {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            gap: 14px;
+            margin-top: 0;
+            margin-bottom: 0;
+        }
+        .send-btn {
+            height: 44px;
+            min-width: 120px;
+            font-size: 16px;
+            border-radius: 22px;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            box-shadow: 0 2px 8px 0 rgba(102,126,234,0.08);
+            transition: background 0.2s, box-shadow 0.2s;
+        }
+        .send-btn:hover {
+            background: linear-gradient(90deg, #5a6fd8 0%, #764ba2 100%);
+            box-shadow: 0 4px 16px 0 rgba(102,126,234,0.13);
+        }
+        .result {
+            margin-top: 18px;
+            padding: 22px 18px 18px 18px;
+            background: #fafdff;
+            border-radius: 16px;
+            border-left: 5px solid #667eea;
+            box-shadow: 0 2px 8px 0 rgba(102,126,234,0.04);
+            display: none;
+            animation: fadeIn 0.5s;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .result.success {
+            background: #eafaf1;
+            border-left-color: #28a745;
+            color: #155724;
+        }
+        .result.error {
+            background: #fbeaea;
+            border-left-color: #dc3545;
+            color: #721c24;
+        }
+        .result h3 {
+            margin-bottom: 10px;
+            font-size: 18px;
+            font-weight: 600;
+        }
+        .result pre, .plain-text {
+            background: #f7f8fa;
+            color: #222;
+            padding: 12px;
+            border-radius: 8px;
+            overflow-x: auto;
+            font-size: 14px;
+            margin: 0;
+        }
+        .token-info {
+            margin-bottom: 18px;
+            padding: 12px 10px 10px 10px;
+            background-color: #f0f7fa;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+        .token-info h4 {
+            color: #333;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        .token-stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: flex-start;
+            gap: 12px;
+        }
+        .token-item {
+            display: flex;
+            align-items: center;
+        }
+        .token-label {
+            font-weight: bold;
+            color: #555;
+            margin-right: 5px;
+        }
+        .token-value {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        .token-value.total {
+            color: #dc3545;
+        }
+        #overlay {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(128,128,128,0.18);
+            backdrop-filter: blur(2px);
+        }
+        @media (max-width: 700px) {
+            .container {
+                max-width: 98vw;
+                margin: 0.5em auto;
+                border-radius: 12px;
+                padding: 0 0 16px 0;
+            }
+            .content {
+                padding: 18px 6px 0 6px;
+            }
+            .section {
+                padding: 14px 6px 10px 6px;
+                border-radius: 10px;
+            }
+            .form-group-flex {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 10px;
+            }
+            .form-group-flex .form-group:first-child {
+                flex: 1;
+            }
+            .form-group.btn-group {
+                flex-direction: column;
+                align-items: stretch;
+                gap: 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📈 股票智能分析</h1>
+        </div>
+        <div class="content">
+            <div class="section">
+                <h2>🔍 股票分析</h2>
+                <div class="form-group-flex">
+                    <div class="form-group">
+                        <label>AI模型</label>
+                        <select id="modelSelect">
+                            <option value="zhipu" selected>智谱AI GLM-4</option>
+                            <option value="deepseek">DeepSeek Chat</option>
+                            <option value="tongyi">通义千问 Turbo</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>股票代码</label>
+                        <input type="text" id="stockCode" placeholder="如 600519.SH" autocomplete="off" />
+                    </div>
+                    <div class="form-group btn-group">
+                        <button class="send-btn" onclick="analyzeStock()">开始分析</button>
+                    </div>
+                </div>
+                <div id="modelStatus" class="model-status available" style="margin-top:10px;color:#888;font-size:14px;">
+                    当前模型: 智谱AI GLM-4
+                </div>
+            </div>
+            <div id="result" class="result">
+                <h3 id="resultTitle"></h3>
+                <div id="resultContent"></div>
+            </div>
+        </div>
+    </div>
+    <div id="overlay"></div>
+    <script>
+        let currentModel = 'zhipu';
+        function showOverlay() {
+            document.getElementById('overlay').style.display = 'block';
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.style.cursor = 'not-allowed';
+            });
+        }
+        function hideOverlay() {
+            document.getElementById('overlay').style.display = 'none';
+            document.querySelectorAll('button').forEach(btn => {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.style.cursor = 'pointer';
+            });
+        }
+        document.getElementById('modelSelect').addEventListener('change', function() {
+            currentModel = this.value;
+            document.getElementById('modelStatus').textContent = '当前模型: ' + getModelDisplayName(currentModel);
+        });
+        function getModelDisplayName(modelType) {
+            switch (modelType) {
+                case 'zhipu': return '智谱AI GLM-4';
+                case 'deepseek': return 'DeepSeek Chat';
+                case 'tongyi': return '通义千问 Turbo';
+                default: return '智谱AI GLM-4';
+            }
+        }
+        async function analyzeStock() {
+            const stockCode = document.getElementById('stockCode').value.trim();
+            if (!stockCode) {
+                showResult('请输入有效的股票代码', 'error');
+                return;
+            }
+            showOverlay();
+            const result = document.getElementById('result');
+            result.style.display = 'none';
+            try {
+                const response = await fetch('/stockAi/analyze', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ stockCode, modelType: currentModel })
+                });
+                const data = await response.json();
+                if (data.suggestion) {
+                    showResult(data.suggestion, 'success', data.tokenInfo);
+                } else if (data.error) {
+                    showResult(data.error, 'error');
+                } else {
+                    showResult('未知错误', 'error');
+                }
+            } catch (e) {
+                showResult('网络错误：' + e.message, 'error');
+            } finally {
+                hideOverlay();
+            }
+        }
+        function showResult(content, type, tokenInfo = null) {
+            const result = document.getElementById('result');
+            const resultTitle = document.getElementById('resultTitle');
+            const resultContent = document.getElementById('resultContent');
+            result.className = 'result ' + type;
+            result.style.display = 'block';
+            if (type === 'success') {
+                resultTitle.innerHTML = '✅ 分析完成';
+                try {
+                    const aiResponse = JSON.parse(content);
+                    resultContent.innerHTML = formatAIResponse(aiResponse, tokenInfo);
+                } catch (e) {
+                    resultContent.innerHTML = formatPlainText(content, tokenInfo);
+                }
+            } else if (type === 'error') {
+                resultTitle.innerHTML = '❌ 分析失败';
+                resultContent.textContent = content;
+            } else {
+                resultTitle.innerHTML = 'ℹ️ 分析结果';
+                resultContent.textContent = content;
+            }
+        }
+        function formatAIResponse(response, tokenInfo) {
+            let html = '';
+            if (tokenInfo) {
+                html += `<div class="token-info">
+                    <h4>📊 Token消耗统计</h4>
+                    <div class="token-stats">
+                        <div class="token-item"><span class="token-label">输入Token:</span><span class="token-value">${tokenInfo.inputTokens}</span></div>
+                        <div class="token-item"><span class="token-label">输出Token:</span><span class="token-value">${tokenInfo.outputTokens}</span></div>
+                        <div class="token-item"><span class="token-label">总Token:</span><span class="token-value total">${tokenInfo.totalTokens}</span></div>
+                        <div class="token-item"><span class="token-label">响应时间:</span><span class="token-value">${tokenInfo.responseTime}ms</span></div>
+                        <div class="token-item"><span class="token-label">响应速度:</span><span class="token-value">${tokenInfo.speed} 字符/秒</span></div>
+                    </div>
+                </div>`;
+            }
+            html += `<div class="section" style="margin-top:10px;">
+                <h4 style="color:#5a6fd8;font-size:1.1em;">📄 分析结果</h4>
+                <div class="plain-text">${JSON.stringify(response, null, 2).replace(/\n/g, '<br>')}</div>
+            </div>`;
+            return html;
+        }
+        function formatPlainText(content, tokenInfo) {
+            let html = '';
+            if (tokenInfo) {
+                html += `<div class="token-info">
+                    <h4>📊 Token消耗统计</h4>
+                    <div class="token-stats">
+                        <div class="token-item"><span class="token-label">输入Token:</span><span class="token-value">${tokenInfo.inputTokens}</span></div>
+                        <div class="token-item"><span class="token-label">输出Token:</span><span class="token-value">${tokenInfo.outputTokens}</span></div>
+                        <div class="token-item"><span class="token-label">总Token:</span><span class="token-value total">${tokenInfo.totalTokens}</span></div>
+                        <div class="token-item"><span class="token-label">响应时间:</span><span class="token-value">${tokenInfo.responseTime}ms</span></div>
+                        <div class="token-item"><span class="token-label">响应速度:</span><span class="token-value">${tokenInfo.speed} 字符/秒</span></div>
+                    </div>
+                </div>`;
+            }
+            html += `<div class="section" style="margin-top:10px;">
+                <h4 style="color:#5a6fd8;font-size:1.1em;">📄 分析结果</h4>
+                <div class="plain-text">${content.replace(/\n/g, '<br>')}</div>
+            </div>`;
+            return html;
+        }
+        document.getElementById('stockCode').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                analyzeStock();
+            }
+        });
+    </script>
+</body>
+</html> 
