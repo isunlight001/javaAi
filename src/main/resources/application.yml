@@ -6,11 +6,12 @@ spring:
     name: zhipu-demo
   main:
     allow-bean-definition-overriding: true
-  
+  config:
+    import: optional:application-secret.yml
   datasource:
     url: jdbc:mysql://localhost:3306/sc6kd_indv_stl_db?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Shanghai
     username: root
-    password: "<your_db_password>"  # 请填写你的数据库密码
+    password: ${DB_PASSWORD}
     driver-class-name: com.mysql.cj.jdbc.Driver
     
   jpa:
@@ -25,8 +26,8 @@ spring:
   mail:
     host: smtp.qq.com
     port: 587
-    username: "<your_email@qq.com>"  # 请填写你的QQ邮箱
-    password: "<your_email_auth_code>"  # 请填写QQ邮箱的16位授权码（不是登录密码）
+    username: ${MAIL_USER}
+    password: ${MAIL_PASS}
     properties:
       mail:
         smtp:
@@ -38,7 +39,7 @@ spring:
 # 智普AI 配置
 zhipu:
   ai:
-    api-key: "<your_zhipu_api_key>"  # 请填写你的智谱AI API Key
+    api-key: ${ZHIPU_API_KEY}  # 请填写你的智谱AI API Key
     base-url: https://open.bigmodel.cn/api/paas/v4
     model: glm-4
     model-type: zhipu  # 可选: zhipu, deepseek, tongyi
@@ -46,13 +47,13 @@ zhipu:
 
 # DeepSeek AI 配置
 deepseek:
-  api-key: "<your_deepseek_api_key>"  # 请填写你的DeepSeek API Key
+  api-key: ${DEEPSEEK_API_KEY}  # 请填写你的DeepSeek API Key
   base-url: https://api.deepseek.com
   model: deepseek-chat
 
 # 通义千问 AI 配置
 tongyi:
-  api-key: "<your_tongyi_api_key>"  # 请填写你的通义千问 API Key
+  api-key: ${TONGYI_API_KEY}  # 请填写你的通义千问 API Key
   base-url: https://dashscope.aliyuncs.com
   model: qwen-turbo
 
@@ -61,11 +62,11 @@ tongyi:
 # 股票邮件配置
 stock:
   mail:
-    to: "<your_email@qq.com>"  # 请填写你的QQ邮箱 
+    to: ${STOCK_MAIL_TO}  # 请填写你的QQ邮箱 
 
 # tushare配置
 tushare:
-  token: "<your_tushare_token>"  # 请填写你的tushare token
+  token: ${TUSHARE_TOKEN}  # 请填写你的tushare token
   
 # application.yml
 management:
