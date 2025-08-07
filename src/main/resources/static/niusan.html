@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>牛散持仓数据管理</title>
+    <style>
+        body { font-family: 'Microsoft YaHei', Arial, sans-serif; background: #f5f6fa; margin: 0; }
+        .container { max-width: 900px; margin: 40px auto; background: #fff; border-radius: 10px; box-shadow: 0 4px 24px #0001; padding: 32px; }
+        h2 { color: #4b6cb7; }
+        textarea { width: 100%; height: 120px; font-size: 15px; margin-bottom: 12px; }
+        button { background: #4b6cb7; color: #fff; border: none; padding: 8px 24px; border-radius: 5px; font-size: 16px; cursor: pointer; }
+        table { width: 100%; border-collapse: collapse; margin-top: 24px; }
+        th, td { border: 1px solid #e0e0e0; padding: 8px; text-align: center; }
+        th { background: #f0f4fa; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <h2>牛散持仓数据管理</h2>
+    <p>可将表格OCR文本粘贴到下方，或上传解析后的表格数据：</p>
+    <textarea id="tableText" placeholder="请粘贴表格文本，每行一条，字段用Tab或空格分隔"></textarea>
+    <button onclick="uploadTable()">上传并保存</button>
+    <hr>
+    <h3>数据库中已保存数据</h3>
+    <table id="dataTable">
+        <thead>
+        <tr>
+            <th>股票名称</th><th>代码</th><th>持股数量(万股)</th><th>涨幅</th><th>占总股本比例</th><th>持股变动</th><th>总市值</th><th>报告期</th>
+        </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+</div>
+<script>
+function parseText(text) {
+    return text.trim().split('\n').map(line => line.split(/\s+/));
+}
+async function uploadTable() {
+    const text = document.getElementById('tableText').value;
+    if (!text.trim()) { alert('请粘贴表格文本'); return; }
+    const table = parseText(text);
+    const res = await fetch('/api/niusan/upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(table)
+    });
+    if (res.ok) { alert('上传成功'); loadData(); }
+    else alert('上传失败');
+}
+async function loadData() {
+    const res = await fetch('/api/niusan/list');
+    const data = await res.json();
+    const tbody = document.querySelector('#dataTable tbody');
+    tbody.innerHTML = '';
+    data.forEach(row => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `<td>${row.name}</td><td>${row.code}</td><td>${row.holdNum}</td><td>${row.changeRate}</td><td>${row.percent}</td><td>${row.changeType}</td><td>${row.marketCap}</td><td>${row.reportDate}</td>`;
+        tbody.appendChild(tr);
+    });
+}
+window.onload = loadData;
+</script>
+</body>
+</html> 
