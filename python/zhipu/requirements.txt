@@ -7,3 +7,9 @@ jinja2
 python-multipart
 email-validator
 aiosmtplib 
+# Java后端需要在pom.xml添加如下依赖：
+# <dependency>
+#   <groupId>org.jsoup</groupId>
+#   <artifactId>jsoup</artifactId>
+#   <version>1.15.4</version>
+# </dependency> 
