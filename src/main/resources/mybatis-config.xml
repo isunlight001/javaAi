@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE configuration
+        PUBLIC "-//mybatis.org//DTD Config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-config.dtd">
+<configuration>
+    <!-- 配置拦截器 -->
+    <plugins>
+        <plugin interceptor="com.zhipu.demo.test.SecondInterceptor">
+        </plugin>
+        <!-- 第一个拦截器 -->
+        <plugin interceptor="com.zhipu.demo.test.FirstInterceptor">
+        </plugin>
+        
+        <!-- 第二个拦截器 -->
+
+    </plugins>
+    
+    <!-- 其他配置 -->
+    <environments default="development">
+        <environment id="development">
+            <transactionManager type="JDBC"/>
+            <dataSource type="POOLED">
+                <property name="driver" value="com.mysql.cj.jdbc.Driver"/>
+                <property name="url" value="jdbc:mysql://localhost:3306/sc6kd_indv_stl_db?useUnicode=true&amp;characterEncoding=utf8&amp;useSSL=false&amp;serverTimezone=Asia/Shanghai"/>
+                <property name="username" value="root"/>
+                <property name="password" value="root123456"/>
+            </dataSource>
+        </environment>
+    </environments>
+    
+    <mappers>
+        <!-- 配置Mapper接口 -->
+        <mapper class="com.zhipu.demo.test.UserMapper"/>
+    </mappers>
+</configuration>
