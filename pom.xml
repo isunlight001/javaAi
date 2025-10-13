@@ -128,7 +128,7 @@
                 <artifactId>exec-maven-plugin</artifactId>
                 <version>3.1.0</version>
                 <configuration>
-                    <mainClass>com.zhipu.demo.test.InterceptorOrderDemo</mainClass>
+                    <mainClass>com.zhipu.demo.test.MapToJsonDemo</mainClass>
                 </configuration>
             </plugin>
         </plugins>
