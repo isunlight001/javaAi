@@ -5,14 +5,15 @@
 <configuration>
     <!-- 配置拦截器 -->
     <plugins>
-        <plugin interceptor="com.zhipu.demo.test.SecondInterceptor">
-        </plugin>
         <!-- 第一个拦截器 -->
         <plugin interceptor="com.zhipu.demo.test.FirstInterceptor">
+            <property name="property1" value="value1"/>
         </plugin>
         
         <!-- 第二个拦截器 -->
-
+        <plugin interceptor="com.zhipu.demo.test.SecondInterceptor">
+            <property name="property2" value="value2"/>
+        </plugin>
     </plugins>
     
     <!-- 其他配置 -->
@@ -31,5 +32,6 @@
     <mappers>
         <!-- 配置Mapper接口 -->
         <mapper class="com.zhipu.demo.test.UserMapper"/>
+        <mapper class="com.zhipu.demo.test.BatchUserMapper"/>
     </mappers>
 </configuration>
